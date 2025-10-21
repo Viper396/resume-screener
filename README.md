@@ -85,6 +85,8 @@ npx http-server -p 8000
 
 3. Open your browser and go to `http://localhost:8000`
 
+4. Select the public folder from the available options
+
 ## Usage
 
 1. Start the backend server (Flask API must be running)
