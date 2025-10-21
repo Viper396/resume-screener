@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Scorer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 ATS Resume Scorer</h1>
+            <p class="subtitle">Optimize your resume for Applicant Tracking Systems</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-card">
+                    <h2>Upload Your Resume</h2>
+                    <p class="helper-text">Supports PDF, DOCX, and TXT formats (max 16MB)</p>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📤</div>
+                        <p>Drag and drop your resume here</p>
+                        <p class="or-text">or</p>
+                        <label for="fileInput" class="file-label">
+                            <span class="btn-primary">Choose File</span>
+                        </label>
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden>
+                    </div>
+
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <span id="fileName"></span>
+                        <button class="btn-remove" id="removeFile">×</button>
+                    </div>
+
+                    <button class="btn-score" id="scoreBtn" disabled>
+                        <span id="btnText">Analyze Resume</span>
+                        <span class="loader" id="loader" style="display: none;"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="score-card">
+                    <h2>Your ATS Score</h2>
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <svg viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="90" class="score-bg"></circle>
+                                <circle cx="100" cy="100" r="90" class="score-progress" id="scoreCircle"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <span class="score-number" id="scoreNumber">0</span>
+                                <span class="score-grade" id="scoreGrade">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="breakdown">
+                        <h3>Score Breakdown</h3>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Sections</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="sectionsBar"></div>
+                            </div>
+                            <span class="breakdown-score" id="sectionsScore">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Keywords</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="keywordsBar"></div>
+                            </div>
+                            <span class="breakdown-score" id="keywordsScore">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Formatting</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="formattingBar"></div>
+                            </div>
+                            <span class="breakdown-score" id="formattingScore">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Length</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="lengthBar"></div>
+                            </div>
+                            <span class="breakdown-score" id="lengthScore">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="breakdown-label">Contact Info</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="contactBar"></div>
+                            </div>
+                            <span class="breakdown-score" id="contactScore">0</span>
+                        </div>
+                    </div>
+
+                    <div class="feedback">
+                        <h3>Recommendations</h3>
+                        <ul id="feedbackList"></ul>
+                    </div>
+
+                    <button class="btn-reset" id="resetBtn">Analyze Another Resume</button>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

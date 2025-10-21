@@ -1,0 +1,56 @@
+JOHN DOE
+Email: john.doe@email.com | Phone: 555-123-4567 | LinkedIn: linkedin.com/in/johndoe | GitHub: github.com/johndoe
+
+PROFESSIONAL SUMMARY
+Results-driven Software Engineer with 5+ years of experience in full-stack development. Proven expertise in building scalable web applications using modern technologies. Strong problem-solving skills and excellent communication abilities.
+
+TECHNICAL SKILLS
+- Programming Languages: Python, JavaScript, TypeScript, Java
+- Frontend: React, Vue, HTML, CSS, Angular
+- Backend: Node.js, Flask, Django, Express
+- Databases: PostgreSQL, MongoDB, Redis, MySQL
+- DevOps: Docker, Kubernetes, AWS, Git, CI/CD
+- Machine Learning: TensorFlow, PyTorch, Scikit-learn, Pandas, NumPy
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Engineer | Tech Corp Inc. | Jan 2021 - Present
+- Led development of microservices architecture serving 1M+ users
+- Implemented machine learning models for predictive analytics
+- Managed agile team of 5 developers using Scrum methodology
+- Reduced API response time by 40% through optimization
+- Collaborated with cross-functional teams on product roadmap
+
+Software Developer | Digital Solutions LLC | Jun 2018 - Dec 2020
+- Developed RESTful APIs using Python Flask and Node.js
+- Built responsive web applications with React and TypeScript
+- Implemented automated testing with 90% code coverage
+- Participated in code reviews and pair programming sessions
+- Contributed to open-source projects and technical documentation
+
+EDUCATION
+
+Bachelor of Science in Computer Science
+State University | Graduated: May 2018
+GPA: 3.8/4.0
+
+PROJECTS
+
+E-Commerce Platform
+- Built full-stack application using React, Node.js, and PostgreSQL
+- Integrated payment processing with Stripe API
+- Implemented JWT authentication and authorization
+
+Data Analysis Dashboard
+- Created interactive visualizations using Python and Pandas
+- Deployed on AWS with Docker containerization
+- Real-time data processing with Redis caching
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect
+- Google Cloud Professional Developer
+- Certified Scrum Master
+
+AWARDS
+- Employee of the Year 2022
+- Best Innovation Award 2021
