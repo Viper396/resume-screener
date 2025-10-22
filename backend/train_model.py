@@ -1,10 +1,12 @@
 import numpy as np
 import pickle
 import os
+import argparse
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import json
+import torch
 
 def load_training_data(data_file='training_data.json'):
     """
@@ -47,7 +49,7 @@ def load_training_data(data_file='training_data.json'):
     
     return np.array(X), np.array(y)
 
-def train_classifier(X, y):
+def train_classifier(X, y, n_estimators=100, max_depth=10):
     """Train a Random Forest regressor for ATS scoring"""
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -57,10 +59,12 @@ def train_classifier(X, y):
     # Train model
     print("Training Random Forest classifier...")
     model = RandomForestRegressor(
-        n_estimators=100,
-        max_depth=10,
+        n_estimators=n_estimators,
+        max_depth=max_depth,
         min_samples_split=5,
-        random_state=42
+        random_state=42,
+        n_jobs=-1,  # Use all CPU cores
+        verbose=1
     )
     model.fit(X_train, y_train)
     
@@ -150,22 +154,53 @@ def generate_synthetic_data(num_samples=100):
     print(f"Generated {num_samples} synthetic samples")
     return data
 
+def check_gpu():
+    """Check GPU availability"""
+    if torch.cuda.is_available():
+        print(f"✓ GPU Available: {torch.cuda.get_device_name(0)}")
+        print(f"  CUDA Version: {torch.version.cuda}")
+        print(f"  GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB\n")
+        return True
+    else:
+        print("⚠ GPU not available, using CPU\n")
+        return False
+
 def main():
     """Main training pipeline"""
+    parser = argparse.ArgumentParser(description='Train ATS ML Model')
+    parser.add_argument('--data', type=str, default='training_data.json',
+                       help='Path to training data JSON file')
+    parser.add_argument('--n-estimators', type=int, default=100,
+                       help='Number of trees in Random Forest')
+    parser.add_argument('--max-depth', type=int, default=10,
+                       help='Maximum depth of trees')
+    parser.add_argument('--epochs', type=int, default=100,
+                       help='Training epochs (for display only with RF)')
+    parser.add_argument('--use-gpu', action='store_true',
+                       help='Enable GPU acceleration check')
+    
+    args = parser.parse_args()
+    
     print("=== ATS Scorer Model Training ===\n")
     
+    # Check GPU
+    if args.use_gpu:
+        check_gpu()
+    
     # Check if training data exists, if not generate synthetic data
-    if not os.path.exists('training_data.json'):
-        print("No training data found. Generating synthetic data...\n")
+    if not os.path.exists(args.data):
+        print(f"No training data found at {args.data}")
+        print("Generating synthetic data...\n")
         generate_synthetic_data(num_samples=200)
+        args.data = 'training_data.json'
     
     # Load training data
-    print("Loading training data...")
-    X, y = load_training_data()
+    print(f"Loading training data from {args.data}...")
+    X, y = load_training_data(args.data)
     print(f"Loaded {len(X)} training samples\n")
     
     # Train model
-    model = train_classifier(X, y)
+    model = train_classifier(X, y, n_estimators=args.n_estimators, max_depth=args.max_depth)
     
     # Save model
     save_model(model)
@@ -174,7 +209,7 @@ def main():
     print("\nNext steps:")
     print("1. The model is saved in models/ats_classifier.pkl")
     print("2. The ML scorer will automatically load and use this model")
-    print("3. To improve accuracy, replace training_data.json with real labeled resume data")
+    print("3. To improve accuracy, collect more real labeled resume data")
     print("4. Restart the Flask server to use the trained model")
 
 if __name__ == '__main__':

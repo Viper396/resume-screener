@@ -4,17 +4,31 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import pickle
+import torch
 import PyPDF2
 import docx
 
 class MLATSScorer:
-    def __init__(self, model_name='all-MiniLM-L6-v2'):
+    def __init__(self, model_name='all-MiniLM-L6-v2', use_gpu=True):
         """
         Initialize ML-based ATS scorer
         Uses sentence transformers for semantic similarity
+        
+        Args:
+            model_name: Sentence transformer model to use
+            use_gpu: Whether to use GPU if available
         """
         print(f"Loading ML model: {model_name}")
-        self.model = SentenceTransformer(model_name)
+        
+        # Detect and configure device
+        if use_gpu and torch.cuda.is_available():
+            self.device = 'cuda'
+            print(f"✓ Using GPU: {torch.cuda.get_device_name(0)}")
+        else:
+            self.device = 'cpu'
+            print("Using CPU")
+        
+        self.model = SentenceTransformer(model_name, device=self.device)
         
         # Reference embeddings for different resume aspects
         self.reference_texts = {
