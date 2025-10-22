@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
-from ats_scorer import ATSScorer
+from ml_scorer import MLATSScorer
 
 app = Flask(__name__)
 CORS(app)
@@ -16,7 +16,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-scorer = ATSScorer()
+# Initialize ML-based scorer
+print("Initializing ML-based ATS Scorer...")
+scorer = MLATSScorer()
+print("ML Scorer ready!")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
