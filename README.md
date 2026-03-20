@@ -45,12 +45,32 @@ resume-screener/
     ├── src/
     │   ├── components/
     │   ├── constants/
-  │   ├── hooks/
+    │   ├── hooks/
     │   ├── services/
     │   └── utils/
     ├── package.json
     └── vite.config.js
 ```
+
+## Quick Start
+
+Open two terminals from the project root:
+
+Terminal 1 (backend):
+
+```bash
+cd backend
+python app.py
+```
+
+Terminal 2 (frontend):
+
+```bash
+cd frontend
+npm run dev
+```
+
+Then open `http://localhost:5173`.
 
 ## Local Setup
 
