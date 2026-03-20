@@ -18,6 +18,20 @@ dist/
 build/
 out/
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.venv/
+venv/
+ENV/
+env/
+
+# Runtime artifacts
+backend/uploads/
+
 # IDE
 .vscode/
 .idea/
@@ -36,4 +50,3 @@ logs/
 # Misc
 .turbo/
 .cache/
-__pycache__/
