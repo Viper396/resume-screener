@@ -28,6 +28,8 @@ def health():
 @app.route('/api/score-resume', methods=['POST'])
 def score_resume():
     try:
+        job_description = request.form.get('job_description', '')
+
         # Check if file or text is provided
         if 'file' in request.files:
             file = request.files['file']
@@ -52,7 +54,7 @@ def score_resume():
             return jsonify({'error': 'No resume data provided'}), 400
         
         # Score the resume
-        result = scorer.score_resume(text)
+        result = scorer.score_resume(text, job_description)
         
         return jsonify(result), 200
     

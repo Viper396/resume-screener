@@ -27,6 +27,16 @@ class ATSScorer:
         self.optional_sections = [
             'projects', 'certifications', 'awards', 'publications', 'summary'
         ]
+
+        # Common terms that are too generic to be useful for JD matching.
+        self.jd_stopwords = {
+            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
+            'in', 'is', 'it', 'of', 'on', 'or', 'that', 'the', 'to', 'with',
+            'will', 'you', 'your', 'we', 'our', 'they', 'this', 'those', 'these',
+            'have', 'has', 'had', 'must', 'should', 'can', 'ability', 'experience',
+            'year', 'years', 'work', 'working', 'role', 'team', 'job', 'required',
+            'preferred', 'plus', 'etc'
+        }
     
     def extract_text_from_file(self, filepath):
         """Extract text from PDF, DOCX, or TXT files"""
@@ -63,7 +73,7 @@ class ATSScorer:
             raise Exception(f"Error reading DOCX: {str(e)}")
         return text
     
-    def score_resume(self, text):
+    def score_resume(self, text, job_description=None):
         """Main scoring function"""
         text_lower = text.lower()
         
@@ -82,14 +92,20 @@ class ATSScorer:
             length_score * 0.15 +
             contact_score * 0.10
         )
+
+        jd_match = None
+        if job_description and job_description.strip():
+            jd_match = self._score_job_description_match(text_lower, job_description.lower())
+            # JD match becomes the most important factor when provided.
+            total_score = (total_score * 0.55) + (jd_match['match_percentage'] * 0.45)
         
         # Generate feedback
         feedback = self._generate_feedback(
             section_score, keyword_score, formatting_score, 
-            length_score, contact_score, text_lower
+            length_score, contact_score, text_lower, jd_match
         )
         
-        return {
+        result = {
             'overall_score': round(total_score, 1),
             'breakdown': {
                 'sections': round(section_score, 1),
@@ -100,6 +116,70 @@ class ATSScorer:
             },
             'feedback': feedback,
             'grade': self._get_grade(total_score)
+        }
+
+        if jd_match:
+            result['breakdown']['jd_match'] = round(jd_match['match_percentage'], 1)
+            result['jd_match'] = {
+                'match_percentage': round(jd_match['match_percentage'], 1),
+                'matched_keywords': jd_match['matched_keywords'],
+                'missing_keywords': jd_match['missing_keywords'],
+                'total_keywords_considered': jd_match['total_keywords_considered']
+            }
+
+        return result
+
+    def _extract_jd_keywords(self, jd_text):
+        """Extract meaningful keywords and short phrases from job description text."""
+        tokens = re.findall(r'[a-zA-Z][a-zA-Z0-9+#.\-]{1,}', jd_text)
+        filtered_tokens = [
+            token for token in tokens
+            if token not in self.jd_stopwords and len(token) >= 3
+        ]
+
+        # Capture short multi-word phrases that often appear in job descriptions.
+        phrase_matches = re.findall(r'([a-zA-Z][a-zA-Z0-9+#.\-]{2,}\s+[a-zA-Z][a-zA-Z0-9+#.\-]{2,})', jd_text)
+        filtered_phrases = [
+            phrase.strip() for phrase in phrase_matches
+            if all(part not in self.jd_stopwords for part in phrase.split())
+        ]
+
+        token_counter = Counter(filtered_tokens)
+        phrase_counter = Counter(filtered_phrases)
+
+        prioritized_tokens = [word for word, _ in token_counter.most_common(40)]
+        prioritized_phrases = [phrase for phrase, _ in phrase_counter.most_common(20)]
+
+        # Deduplicate while preserving order.
+        combined = []
+        seen = set()
+        for item in prioritized_phrases + prioritized_tokens:
+            if item not in seen:
+                seen.add(item)
+                combined.append(item)
+
+        return combined[:50]
+
+    def _score_job_description_match(self, resume_text, jd_text):
+        """Compute keyword match percentage between resume and job description."""
+        jd_keywords = self._extract_jd_keywords(jd_text)
+        if not jd_keywords:
+            return {
+                'match_percentage': 0.0,
+                'matched_keywords': [],
+                'missing_keywords': [],
+                'total_keywords_considered': 0
+            }
+
+        matched = [keyword for keyword in jd_keywords if keyword in resume_text]
+        missing = [keyword for keyword in jd_keywords if keyword not in resume_text]
+        match_percentage = (len(matched) / len(jd_keywords)) * 100
+
+        return {
+            'match_percentage': match_percentage,
+            'matched_keywords': matched[:20],
+            'missing_keywords': missing[:20],
+            'total_keywords_considered': len(jd_keywords)
         }
     
     def _score_sections(self, text):
@@ -176,9 +256,23 @@ class ATSScorer:
         return score
     
     def _generate_feedback(self, section_score, keyword_score, formatting_score, 
-                          length_score, contact_score, text):
+                          length_score, contact_score, text, jd_match=None):
         """Generate actionable feedback"""
         feedback = []
+
+        if jd_match is not None:
+            if jd_match['match_percentage'] < 50:
+                feedback.append(
+                    "Low JD match: Add more job-specific keywords from the description to your resume."
+                )
+            elif jd_match['match_percentage'] < 75:
+                feedback.append(
+                    "Moderate JD match: Tailor your resume with more exact terms used in the job description."
+                )
+            elif jd_match['match_percentage'] >= 90:
+                feedback.append(
+                    "Excellent JD match: Your resume aligns strongly with the job description keywords."
+                )
         
         if section_score < 70:
             feedback.append("Add missing sections like Experience, Education, or Skills.")
