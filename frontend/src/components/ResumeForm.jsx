@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { validateResumeFile } from "../utils/validateResumeFile";
+import { ROLE_OPTIONS } from "../constants/config";
 
 function ResumeForm({
   selectedFile,
+  selectedRole,
   jobDescription,
   isLoading,
   error,
   onFileChange,
+  onRoleChange,
   onJobDescriptionChange,
   onSubmit,
 }) {
@@ -80,6 +83,21 @@ function ResumeForm({
           </button>
         </div>
       )}
+
+      <label className="mt-5 block text-sm font-semibold text-slate-800">
+        Target Role
+      </label>
+      <select
+        value={selectedRole}
+        onChange={(event) => onRoleChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none ring-cyan-200 transition focus:border-cyan-500 focus:ring"
+      >
+        {ROLE_OPTIONS.map((roleOption) => (
+          <option key={roleOption.value} value={roleOption.value}>
+            {roleOption.label}
+          </option>
+        ))}
+      </select>
 
       <label className="mt-5 block text-sm font-semibold text-slate-800">
         Job Description

@@ -6,6 +6,7 @@ Upload your resume, paste a JD, and get:
 - overall ATS score
 - detailed score breakdown
 - JD keyword match percentage
+- role-aware keyword matching (Software Engineer / Full-stack / Data Science)
 - matched and missing JD keywords
 - actionable recommendations
 
@@ -14,16 +15,20 @@ Upload your resume, paste a JD, and get:
 - Added **Job Description Matching** as a first-class feature.
 - Migrated frontend from vanilla HTML/CSS/JS to **React + Vite + Tailwind CSS**.
 - Refactored frontend into reusable components and service/util layers.
+- Added role-based keyword sets to make JD matching smarter and role-specific.
+- Cleaned up code structure with shared backend role constants and a frontend analyzer hook.
 
 ## Tech Stack
 
 ### Backend
+
 - Python 3.8+
 - Flask + Flask-CORS
 - PyPDF2 (PDF parsing)
 - python-docx (DOCX parsing)
 
 ### Frontend
+
 - React (Vite)
 - Tailwind CSS (via `@tailwindcss/vite`)
 
@@ -34,11 +39,13 @@ resume-screener/
 ├── backend/
 │   ├── app.py
 │   ├── ats_scorer.py
+│   ├── role_keywords.py
 │   └── requirements.txt
 └── frontend/
     ├── src/
     │   ├── components/
     │   ├── constants/
+  │   ├── hooks/
     │   ├── services/
     │   └── utils/
     ├── package.json
@@ -82,9 +89,10 @@ Frontend runs at `http://localhost:5173`.
 1. Start backend and frontend.
 2. Open the frontend URL.
 3. Upload a resume (`.pdf`, `.docx`, `.txt`).
-4. Paste the target job description.
-5. Click **Analyze Resume**.
-6. Review overall score, breakdown, and JD keyword matching details.
+4. Choose the target role.
+5. Paste the target job description.
+6. Click **Analyze Resume**.
+7. Review overall score, breakdown, and role-aware JD keyword matching details.
 
 ## API
 
@@ -107,6 +115,7 @@ Analyze and score a resume.
 Form fields:
 
 - `file`: resume file (`pdf`, `docx`, `txt`) OR `text`
+- `role`: `software_engineer` | `full_stack` | `data_science`
 - `job_description`: pasted job description text
 
 Example response:
@@ -126,7 +135,9 @@ Example response:
     "match_percentage": 76.3,
     "matched_keywords": ["python", "sql"],
     "missing_keywords": ["docker", "kubernetes"],
-    "total_keywords_considered": 38
+    "total_keywords_considered": 38,
+    "selected_role": "data_science",
+    "selected_role_label": "Data Science"
   },
   "feedback": [
     "Moderate JD match: Tailor your resume with more exact terms used in the job description."

@@ -55,9 +55,16 @@ function ResultsPanel({ result }) {
 
       {result.jd_match && (
         <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <h4 className="text-lg font-semibold text-slate-900">
-            Job Description Keyword Matching
-          </h4>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-lg font-semibold text-slate-900">
+              Job Description Keyword Matching
+            </h4>
+            {result.jd_match.selected_role_label && (
+              <span className="rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-900">
+                Role: {result.jd_match.selected_role_label}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-slate-700">
             Matched {result.jd_match.matched_keywords.length} of{" "}
             {result.jd_match.total_keywords_considered} extracted JD keywords.

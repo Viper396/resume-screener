@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
 from ats_scorer import ATSScorer
+from role_keywords import DEFAULT_ROLE
 
 app = Flask(__name__)
 CORS(app)
@@ -29,6 +30,7 @@ def health():
 def score_resume():
     try:
         job_description = request.form.get('job_description', '')
+        role = request.form.get('role', DEFAULT_ROLE)
 
         # Check if file or text is provided
         if 'file' in request.files:
@@ -54,7 +56,7 @@ def score_resume():
             return jsonify({'error': 'No resume data provided'}), 400
         
         # Score the resume
-        result = scorer.score_resume(text, job_description)
+        result = scorer.score_resume(text, job_description, role)
         
         return jsonify(result), 200
     

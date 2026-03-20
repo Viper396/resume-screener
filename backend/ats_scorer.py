@@ -3,6 +3,17 @@ import os
 from collections import Counter
 import PyPDF2
 import docx
+from role_keywords import ROLE_KEYWORD_SETS, ROLE_DISPLAY_NAMES, DEFAULT_ROLE
+
+BASE_SCORE_WEIGHTS = {
+    'sections': 0.25,
+    'keywords': 0.30,
+    'formatting': 0.20,
+    'length': 0.15,
+    'contact_info': 0.10
+}
+
+JD_MATCH_WEIGHT = 0.45
 
 class ATSScorer:
     def __init__(self):
@@ -37,6 +48,9 @@ class ATSScorer:
             'year', 'years', 'work', 'working', 'role', 'team', 'job', 'required',
             'preferred', 'plus', 'etc'
         }
+
+        self.role_keyword_sets = ROLE_KEYWORD_SETS
+        self.role_display_names = ROLE_DISPLAY_NAMES
     
     def extract_text_from_file(self, filepath):
         """Extract text from PDF, DOCX, or TXT files"""
@@ -73,9 +87,10 @@ class ATSScorer:
             raise Exception(f"Error reading DOCX: {str(e)}")
         return text
     
-    def score_resume(self, text, job_description=None):
+    def score_resume(self, text, job_description=None, role=DEFAULT_ROLE):
         """Main scoring function"""
         text_lower = text.lower()
+        normalized_role = self._normalize_role(role)
         
         # Calculate individual scores
         section_score = self._score_sections(text_lower)
@@ -85,19 +100,23 @@ class ATSScorer:
         contact_score = self._score_contact_info(text)
         
         # Weighted total score
-        total_score = (
-            section_score * 0.25 +
-            keyword_score * 0.30 +
-            formatting_score * 0.20 +
-            length_score * 0.15 +
-            contact_score * 0.10
+        total_score = self._calculate_base_score(
+            section_score,
+            keyword_score,
+            formatting_score,
+            length_score,
+            contact_score
         )
 
         jd_match = None
         if job_description and job_description.strip():
-            jd_match = self._score_job_description_match(text_lower, job_description.lower())
+            jd_match = self._score_job_description_match(
+                text_lower,
+                job_description.lower(),
+                normalized_role
+            )
             # JD match becomes the most important factor when provided.
-            total_score = (total_score * 0.55) + (jd_match['match_percentage'] * 0.45)
+            total_score = (total_score * (1 - JD_MATCH_WEIGHT)) + (jd_match['match_percentage'] * JD_MATCH_WEIGHT)
         
         # Generate feedback
         feedback = self._generate_feedback(
@@ -124,12 +143,35 @@ class ATSScorer:
                 'match_percentage': round(jd_match['match_percentage'], 1),
                 'matched_keywords': jd_match['matched_keywords'],
                 'missing_keywords': jd_match['missing_keywords'],
-                'total_keywords_considered': jd_match['total_keywords_considered']
+                'total_keywords_considered': jd_match['total_keywords_considered'],
+                'selected_role': normalized_role,
+                'selected_role_label': self.role_display_names[normalized_role]
             }
 
         return result
 
-    def _extract_jd_keywords(self, jd_text):
+    def _calculate_base_score(self, section_score, keyword_score, formatting_score, length_score, contact_score):
+        """Calculate base ATS score before role-aware JD influence is applied."""
+        return (
+            section_score * BASE_SCORE_WEIGHTS['sections'] +
+            keyword_score * BASE_SCORE_WEIGHTS['keywords'] +
+            formatting_score * BASE_SCORE_WEIGHTS['formatting'] +
+            length_score * BASE_SCORE_WEIGHTS['length'] +
+            contact_score * BASE_SCORE_WEIGHTS['contact_info']
+        )
+
+    def _normalize_role(self, role):
+        """Normalize incoming role string to supported role keys."""
+        if not role:
+            return DEFAULT_ROLE
+
+        normalized = role.strip().lower().replace('-', '_').replace(' ', '_')
+        if normalized not in self.role_keyword_sets:
+            return DEFAULT_ROLE
+
+        return normalized
+
+    def _extract_jd_keywords(self, jd_text, role):
         """Extract meaningful keywords and short phrases from job description text."""
         tokens = re.findall(r'[a-zA-Z][a-zA-Z0-9+#.\-]{1,}', jd_text)
         filtered_tokens = [
@@ -158,11 +200,30 @@ class ATSScorer:
                 seen.add(item)
                 combined.append(item)
 
-        return combined[:50]
+        role_keywords = list(self.role_keyword_sets.get(role, set()))
 
-    def _score_job_description_match(self, resume_text, jd_text):
+        role_aligned = []
+        for keyword in combined:
+            if keyword in self.role_keyword_sets.get(role, set()):
+                role_aligned.append(keyword)
+                continue
+
+            # Keep JD phrases that include role vocabulary (e.g., "react components").
+            if any(role_kw in keyword for role_kw in role_keywords):
+                role_aligned.append(keyword)
+
+        prioritized = []
+        seen = set()
+        for item in role_aligned + combined + role_keywords:
+            if item not in seen:
+                seen.add(item)
+                prioritized.append(item)
+
+        return prioritized[:60]
+
+    def _score_job_description_match(self, resume_text, jd_text, role):
         """Compute keyword match percentage between resume and job description."""
-        jd_keywords = self._extract_jd_keywords(jd_text)
+        jd_keywords = self._extract_jd_keywords(jd_text, role)
         if not jd_keywords:
             return {
                 'match_percentage': 0.0,

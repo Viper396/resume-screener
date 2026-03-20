@@ -7,3 +7,9 @@ export const ALLOWED_FILE_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
+
+export const ROLE_OPTIONS = [
+  { value: "software_engineer", label: "Software Engineer" },
+  { value: "full_stack", label: "Full-stack" },
+  { value: "data_science", label: "Data Science" },
+];
